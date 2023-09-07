@@ -8,16 +8,16 @@ from .validators import validate_icon_image_size, validate_icon_image_extension
 # Create your models here.
 
 
-def category_icon_upload_path(instance, filename):
-    return f"category/{instance.id}/category_icon/{filename}"
-
-
 def server_icon_upload_path(instance, filename):
-    return f"server/{instance.id}/server_icon/{filename}"
+    return f"server/{instance.id}/server_icons/{filename}"
 
 
 def server_banner_upload_path(instance, filename):
     return f"server/{instance.id}/server_banner/{filename}"
+
+
+def category_icon_upload_path(instance, filename):
+    return f"category/{instance.id}/category_icon/{filename}"
 
 
 class Category(models.Model):
@@ -39,6 +39,9 @@ class Category(models.Model):
                 file = getattr(instance, field.name)
                 if file:
                     file.delete(save=False)
+
+    def __str__(self):
+        return self.name
 
 
 class Server(models.Model):
@@ -74,12 +77,13 @@ class Channel(models.Model):
     icon = models.ImageField(
         upload_to=server_icon_upload_path,
         null=True,
+        blank=True,
         validators=[validate_icon_image_size, validate_icon_image_extension],
     )
 
     def save(self, *args, **kwargs):
         if self.id:
-            existing = get_object_or_404(Category, id=self.id)
+            existing = get_object_or_404(Server, id=self.id)
             if existing.icon != self.icon:
                 existing.icon.delete(save=False)
             if existing.banner != self.banner:
@@ -95,4 +99,4 @@ class Channel(models.Model):
                     file.delete(save=False)
 
     def __str__(self):
-        return str(self.name)
+        return self.name
